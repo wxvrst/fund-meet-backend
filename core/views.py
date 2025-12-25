@@ -79,9 +79,21 @@ class UserListView(generics.ListAPIView):
 class UserView(generics.RetrieveUpdateAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
+    queryset = UserModel.objects.all()
+    lookup_field = 'id'  # поле для поиска в URL
 
-    def get_object(self):
-        return self.request.user
+    def get_queryset(self):
+        """
+        Можно оставить фильтрацию, если нужно ограничить доступ
+        Например, если нужно чтобы пользователи видели только себя
+        """
+        queryset = super().get_queryset()
+
+        # Если нужно чтобы пользователи видели только себя
+        # return queryset.filter(id=self.request.user.id)
+
+        # Если нужно чтобы пользователи видели всех пользователей
+        return queryset
 
 
 class UpdateUserView(generics.UpdateAPIView):
