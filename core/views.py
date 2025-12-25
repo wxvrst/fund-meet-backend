@@ -70,6 +70,12 @@ class LogoutView(APIView):
                         status=status.HTTP_200_OK)
 
 
+
+class UserListView(generics.ListAPIView):
+    queryset = UserModel.objects.all()
+    serializer_class = UserSerializer
+
+
 class UserView(generics.RetrieveUpdateAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
