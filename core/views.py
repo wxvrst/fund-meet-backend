@@ -43,7 +43,6 @@ class LoginView(APIView):
             user = serializer.validated_data
             token, created = Token.objects.get_or_create(user=user)
 
-            # Логиним пользователя (для сессий)
             login(request, user)
 
             return Response({
@@ -57,13 +56,11 @@ class LogoutView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
-        # Удаляем токен
         try:
             request.user.auth_token.delete()
         except:
             pass
 
-        # Логаут для сессий
         logout(request)
 
         return Response({"message": "Successfully logged out"},
@@ -76,24 +73,11 @@ class UserListView(generics.ListAPIView):
     serializer_class = UserSerializer
 
 
-class UserView(generics.RetrieveUpdateAPIView):
+class UserDetailView(generics.RetrieveUpdateAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
     queryset = UserModel.objects.all()
-    lookup_field = 'id'  # поле для поиска в URL
-
-    def get_queryset(self):
-        """
-        Можно оставить фильтрацию, если нужно ограничить доступ
-        Например, если нужно чтобы пользователи видели только себя
-        """
-        queryset = super().get_queryset()
-
-        # Если нужно чтобы пользователи видели только себя
-        # return queryset.filter(id=self.request.user.id)
-
-        # Если нужно чтобы пользователи видели всех пользователей
-        return queryset
+    lookup_field = 'id'
 
 
 class UpdateUserView(generics.UpdateAPIView):
@@ -105,9 +89,6 @@ class UpdateUserView(generics.UpdateAPIView):
 
 
 class CurrentUserView(APIView):
-    """
-    Получить информацию о текущем аутентифицированном пользователе
-    """
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
