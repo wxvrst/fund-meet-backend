@@ -88,6 +88,11 @@ class UpdateUserView(generics.UpdateAPIView):
         return self.request.user
 
 
+class DeleteUserView(generics.DestroyAPIView):
+    queryset = UserModel.objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
+
+
 class CurrentUserView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 

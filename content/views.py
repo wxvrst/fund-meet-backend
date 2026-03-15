@@ -103,6 +103,34 @@ class CommentViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=['delete'],
+            url_path='delete-by-publication/(?P<publication_id>\d+)/(?P<comment_id>\d+)')
+    def delete_by_publication(self, request, publication_id=None, comment_id=None):
+        """
+        Удаляет комментарий, проверяя принадлежность указанной публикации.
+        Права: автор комментария, автор публикации или администратор.
+        """
+        publication = get_object_or_404(PublicationModel, id=publication_id)
+        comment = get_object_or_404(PublicationCommentModel, id=comment_id)
+
+        # Проверяем, что комментарий действительно относится к данной публикации
+        if comment.publication.id != publication.id:
+            return Response(
+                {'error': 'Комментарий не принадлежит указанной публикации'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Проверка прав на удаление
+        user = request.user
+        if user != comment.autor and user != publication.author and not user.is_staff:
+            return Response(
+                {'error': 'У вас нет прав на удаление этого комментария'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        comment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class PublicationContentCreateView(generics.CreateAPIView):
     serializer_class = PublicationContentSerializer
@@ -132,6 +160,39 @@ class PublicationContentUpdateView(generics.UpdateAPIView):
         })
 
 
+class PublicationContentList(generics.ListAPIView):
+    """
+    Возвращает список всех объектов контента.
+    Поддерживает фильтрацию по полю publication (если нужно).
+    """
+    queryset = PublicationContentModel.objects.all()
+    serializer_class = PublicationContentSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['publication']
 
+
+class PublicationContentGetById(generics.RetrieveAPIView):
+    """
+    Возвращает один объект контента по его первичному ключу (id).
+    """
+    queryset = PublicationContentModel.objects.all()
+    serializer_class = PublicationContentSerializer
+
+
+class PublicationContentDeleteByPublicationId(APIView):
+    """
+    Удаляет контент, связанный с публикацией, по идентификатору публикации.
+    Предполагается, что связь OneToOne (publication.content).
+    """
+    def delete(self, request, publication_id):
+        publication = get_object_or_404(PublicationModel, id=publication_id)
+        content = getattr(publication, 'content', None)
+        if content is None:
+            return Response(
+                {'error': 'У данной публикации нет контента'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        content.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
