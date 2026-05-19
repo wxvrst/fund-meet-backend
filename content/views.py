@@ -34,7 +34,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(autor=self.request.user)
 
     @action(detail=False, methods=['get'], url_path='by_publication/(?P<publication_id>\d+)')
-    def list_by_publication(self, request, publication_id=None):
+    def list_by_publication(self, request, publication_id):
         publication = get_object_or_404(PublicationModel, id=publication_id)
 
         comments = self.get_queryset().filter(publication_id=publication_id)

@@ -4,6 +4,15 @@ from content.models import PublicationModel, PublicationContentModel, Publicatio
 
 
 class PublicationSerializer(serializers.ModelSerializer):
+    tags = serializers.SlugRelatedField(
+        many=True,
+        slug_field="name",
+        queryset=PublicationTagModel.objects.all(),
+        allow_null=True,
+        allow_empty=True,
+        required=False,
+    )
+
     class Meta:
         model = PublicationModel
         fields = '__all__'
