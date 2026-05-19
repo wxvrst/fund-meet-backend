@@ -10,7 +10,7 @@ class PublicationModel(models.Model):
         related_name='publications'
     )
 
-    tags = models.ManyToManyField(to="PublicationTagModel", verbose_name="Теги", related_name="publications")
+    tags = models.ManyToManyField(to="PublicationTagModel", verbose_name="Теги", related_name="publications", blank=True)
 
     likes_count = models.IntegerField(default=0, null=False)
     date_added = models.DateTimeField(auto_now_add=True)
