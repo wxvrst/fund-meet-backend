@@ -3,7 +3,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework import generics, filters, viewsets, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from content.models import PublicationModel, PublicationTagModel, PublicationContentModel, PublicationCommentModel
 from content.serializers import PublicationSerializer, PublicationTagSerializer, PublicationContentSerializer, \
@@ -134,9 +137,11 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class PublicationContentCreateView(generics.CreateAPIView):
     serializer_class = PublicationContentSerializer
+    parser_classes = (MultiPartParser,)
 
 class PublicationContentUpdateView(generics.UpdateAPIView):
     serializer_class = PublicationContentSerializer
+    parser_classes = (MultiPartParser,)
 
     def get_object(self):
         publication_id = self.kwargs.get('publication_id')

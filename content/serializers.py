@@ -18,6 +18,8 @@ class PublicationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PublicationContentSerializer(serializers.ModelSerializer):
+    image_content = serializers.ImageField(required=False)
+
     class Meta:
         model = PublicationContentModel
         fields = '__all__'
