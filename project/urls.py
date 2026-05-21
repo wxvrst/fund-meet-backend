@@ -3,6 +3,9 @@ from django.urls import path, include
 from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
     path('', RedirectView.as_view(url='/schema/swagger-ui/', permanent=False)),
 
@@ -13,4 +16,4 @@ urlpatterns = [
 
     path('core/', include('core.urls', namespace='core')),
     path('content/', include('content.urls', namespace='content')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
