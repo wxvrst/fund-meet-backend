@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from drf_yasg.utils import swagger_auto_schema
+import core.permission
 
 
 from core.models import UserModel
@@ -91,7 +92,7 @@ class UpdateUserView(generics.UpdateAPIView):
 
 class DeleteUserView(generics.DestroyAPIView):
     queryset = UserModel.objects.all()
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (core.permission.AuthorOnly,)
 
 
 class CurrentUserView(APIView):

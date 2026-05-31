@@ -1,12 +1,14 @@
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, filters, viewsets, status
+import rest_framework.permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+import content.permission
 
 from content.models import PublicationModel, PublicationTagModel, PublicationContentModel, PublicationCommentModel
 from content.serializers import PublicationSerializer, PublicationTagSerializer, PublicationContentSerializer, \
@@ -19,18 +21,61 @@ class PublicationViewSet(viewsets.ModelViewSet):
     filter = [DjangoFilterBackend]
 
     filterset_fields = {
+        'header': ['icontains'],
         'author__username': ['icontains'],
-        'tags': ['exact'],
+        'tags__name': ['in', 'exact'],
     }
+
+    def get_permissions(self):
+        if self.action == 'list':
+            permission_classes = [rest_framework.permissions.AllowAny]
+        elif self.action == 'create':
+            permission_classes = [rest_framework.permissions.IsAuthenticated]
+        elif self.action == 'update' or self.action == 'partial_update':
+            permission_classes = [content.permission.AuthorOnly]
+        elif self.action == 'destroy':
+            permission_classes = [content.permission.AuthorOnly]
+        else:
+            permission_classes = [rest_framework.permissions.IsAuthenticated]
+
+        return [permission() for permission in permission_classes]
 
 
 class TagViewSet(viewsets.ModelViewSet):
     queryset = PublicationTagModel.objects.all()
     serializer_class = PublicationTagSerializer
 
+    def get_permissions(self):
+        if self.action == 'list':
+            permission_classes = [rest_framework.permissions.AllowAny]
+        elif self.action == 'create':
+            permission_classes = [rest_framework.permissions.IsAuthenticated]
+        elif self.action == 'update' or self.action == 'partial_update':
+            permission_classes = [content.permission.AuthorOnly]
+        elif self.action == 'destroy':
+            permission_classes = [content.permission.AuthorOnly]
+        else:
+            permission_classes = [rest_framework.permissions.IsAuthenticated]
+
+        return [permission() for permission in permission_classes]
+
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = PublicationCommentModel.objects.all()
     serializer_class = PublicationCommentSerializer
+
+    def get_permissions(self):
+        if self.action == 'list':
+            permission_classes = [rest_framework.permissions.AllowAny]
+        elif self.action == 'create':
+            permission_classes = [rest_framework.permissions.IsAuthenticated]
+        elif self.action == 'update' or self.action == 'partial_update':
+            permission_classes = [content.permission.AuthorOnly]
+        elif self.action == 'destroy':
+            permission_classes = [content.permission.AuthorOnly]
+        else:
+            permission_classes = [rest_framework.permissions.IsAuthenticated]
+
+        return [permission() for permission in permission_classes]
 
 
     def perform_create(self, serializer):
@@ -53,7 +98,12 @@ class CommentViewSet(viewsets.ModelViewSet):
             'count': comments.count()
         })
 
-    @action(detail=False, methods=['post'], url_path='by-publication/(?P<publication_id>\d+)')
+    @action(
+        detail=False,
+        methods=['post'],
+        url_path='by-publication/(?P<publication_id>\d+)',
+        permission_classes=[rest_framework.permissions.IsAuthenticated]
+    )
     def create_by_publication(self, request, publication_id=None):
         publication = get_object_or_404(PublicationModel, id=publication_id)
 
@@ -68,8 +118,11 @@ class CommentViewSet(viewsets.ModelViewSet):
             'comment': serializer.data
         }, status=status.HTTP_201_CREATED)
 
-    @action(detail=False, methods=['put', 'patch'],
-            url_path='by-publication/(?P<publication_id>\d+)/(?P<comment_id>\d+)')
+    @action(
+        detail=False, methods=['put', 'patch'],
+        url_path='by-publication/(?P<publication_id>\d+)/(?P<comment_id>\d+)',
+        permission_classes=[content.permission.AuthorOnly]
+    )
     def update_by_publication(self, request, publication_id=None, comment_id=None):
         publication = get_object_or_404(PublicationModel, id=publication_id)
         comment = get_object_or_404(PublicationCommentModel, id=comment_id)
@@ -91,7 +144,11 @@ class CommentViewSet(viewsets.ModelViewSet):
             'comment': serializer.data
         })
 
-    @action(detail=True, methods=['post'])
+    @action(
+        detail=True,
+        methods=['post'],
+        permission_classes=[rest_framework.permissions.IsAuthenticated]
+    )
     def reply(self, request, pk=None):
         parent_comment = self.get_object()
 
@@ -106,24 +163,21 @@ class CommentViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=False, methods=['delete'],
-            url_path='delete-by-publication/(?P<publication_id>\d+)/(?P<comment_id>\d+)')
+    @action(
+        detail=False, methods=['delete'],
+        url_path='delete-by-publication/(?P<publication_id>\d+)/(?P<comment_id>\d+)',
+        permission_classes=[content.permission.AuthorOnly]
+    )
     def delete_by_publication(self, request, publication_id=None, comment_id=None):
-        """
-        Удаляет комментарий, проверяя принадлежность указанной публикации.
-        Права: автор комментария, автор публикации или администратор.
-        """
         publication = get_object_or_404(PublicationModel, id=publication_id)
         comment = get_object_or_404(PublicationCommentModel, id=comment_id)
 
-        # Проверяем, что комментарий действительно относится к данной публикации
         if comment.publication.id != publication.id:
             return Response(
                 {'error': 'Комментарий не принадлежит указанной публикации'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Проверка прав на удаление
         user = request.user
         if user != comment.autor and user != publication.author and not user.is_staff:
             return Response(
@@ -138,10 +192,13 @@ class CommentViewSet(viewsets.ModelViewSet):
 class PublicationContentCreateView(generics.CreateAPIView):
     serializer_class = PublicationContentSerializer
     parser_classes = (MultiPartParser,)
+    permission_class = [content.permission.AuthorOnly]
+
 
 class PublicationContentUpdateView(generics.UpdateAPIView):
     serializer_class = PublicationContentSerializer
     parser_classes = (MultiPartParser,)
+    permission_class = [content.permission.AuthorOnly]
 
     def get_object(self):
         publication_id = self.kwargs.get('publication_id')
@@ -166,29 +223,21 @@ class PublicationContentUpdateView(generics.UpdateAPIView):
 
 
 class PublicationContentList(generics.ListAPIView):
-    """
-    Возвращает список всех объектов контента.
-    Поддерживает фильтрацию по полю publication (если нужно).
-    """
     queryset = PublicationContentModel.objects.all()
     serializer_class = PublicationContentSerializer
+    permission_classes = [rest_framework.permissions.AllowAny]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['publication']
 
 
 class PublicationContentGetById(generics.RetrieveAPIView):
-    """
-    Возвращает один объект контента по его первичному ключу (id).
-    """
     queryset = PublicationContentModel.objects.all()
     serializer_class = PublicationContentSerializer
+    permission_classes = [rest_framework.permissions.AllowAny]
 
 
 class PublicationContentDeleteByPublicationId(APIView):
-    """
-    Удаляет контент, связанный с публикацией, по идентификатору публикации.
-    Предполагается, что связь OneToOne (publication.content).
-    """
+    permission_classes = [content.permission.AuthorOnly]
     def delete(self, request, publication_id):
         publication = get_object_or_404(PublicationModel, id=publication_id)
         content = getattr(publication, 'content', None)
