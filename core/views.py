@@ -100,10 +100,6 @@ class CurrentUserView(APIView):
 
     def get(self, request):
         user = request.user
-        serializer = UserSerializer(user)
-        return Response({
-            'user': serializer.data,
-            'is_authenticated': user.is_authenticated,
-            'email': user.email,
-        })
+        serializer = UserSerializer(user, context={'request': request})
+        return Response(serializer.data)
 
