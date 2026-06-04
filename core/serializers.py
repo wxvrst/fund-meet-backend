@@ -5,9 +5,18 @@ from django.contrib.auth.password_validation import validate_password
 from core.models import UserModel
 
 class UserSerializer(serializers.ModelSerializer):
+    following = serializers.SerializerMethodField()
+    followers = serializers.SerializerMethodField()
+
     class Meta:
         model = UserModel
-        fields = ('id', 'username', 'email', 'avatar')
+        fields = ('id', 'username', 'email', 'avatar', 'following', "followers")
+
+    def get_following(self, obj):
+        return [{'id': u.id, 'username': u.username} for u in obj.following.all()]
+
+    def get_followers(self, obj):
+        return [{'id': u.id, 'username': u.username} for u in obj.followers.all()]
 
 
 class RegisterSerializer(serializers.ModelSerializer):

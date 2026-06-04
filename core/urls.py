@@ -12,4 +12,6 @@ urlpatterns = [
     path('user/update/', views.UpdateUserView.as_view(), name='update_profile'),
     path('user/delete/<int:pk>', views.DeleteUserView.as_view(), name='delete_profile'),
     path('user/currentuser/', views.CurrentUserView.as_view(), name='currentuser'),
+    path('user/subscribe/<int:pk>', views.SubscribeView.as_view(), name='subscribe'),
+    path('user/unsubscribe/<int:pk>', views.UnsubscribeView.as_view(), name='unsubscribe'),
 ]

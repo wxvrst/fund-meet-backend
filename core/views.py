@@ -1,3 +1,5 @@
+from django.contrib.admin import action
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -88,6 +90,25 @@ class UpdateUserView(generics.UpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class SubscribeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        author = get_object_or_404(UserModel, pk=pk)
+        if request.user == author:
+            return Response({'error': 'Нельзя подписаться на себя'}, status=400)
+        request.user.following.add(author)
+        return Response({'status': 'subscribed'})
+
+class UnsubscribeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        author = get_object_or_404(UserModel, pk=pk)
+        request.user.following.remove(author)
+        return Response({'status': 'unsubscribed'})
 
 
 class DeleteUserView(generics.DestroyAPIView):

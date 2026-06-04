@@ -7,6 +7,14 @@ class UserModel(AbstractUser):
         blank=True,
     )
 
+    following = models.ManyToManyField(
+        'self',
+        related_name='followers',
+        blank=True,
+        symmetrical=False,
+        default=0,
+    )
+
     def __str__(self):
         return self.username
 
