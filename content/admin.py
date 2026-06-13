@@ -14,6 +14,6 @@ admin.site.register(PublicationContentModel)
 
 @admin.register(PublicationCommentModel)
 class PublicationCommentModelAdmin(admin.ModelAdmin):
-    list_display = ('id', 'autor',)
-    search_fields = ('autor',)
-    list_filter = ('autor',)
+    list_display = ('id', 'author',)
+    search_fields = ('author',)
+    list_filter = ('author',)

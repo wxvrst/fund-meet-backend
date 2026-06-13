@@ -53,7 +53,7 @@ class PublicationTagModel(models.Model):
 
 
 class PublicationCommentModel(models.Model):
-    autor = models.ForeignKey('core.UserModel', on_delete=models.CASCADE, verbose_name="Автор", related_name='comments')
+    author = models.ForeignKey('core.UserModel', on_delete=models.CASCADE, verbose_name="Автор", related_name='comments')
     parent_comment = models.ForeignKey(
         'self',
         on_delete=models.CASCADE,
