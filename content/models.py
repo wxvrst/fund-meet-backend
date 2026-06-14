@@ -74,7 +74,7 @@ class PublicationCommentModel(models.Model):
     date_added = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{str(self.autor)} {str(self.date_added)} {'response to ' + str(self.parent_comment) if self.parent_comment else ''}"
+        return f"{str(self.author)} {str(self.date_added)} {'response to ' + str(self.parent_comment) if self.parent_comment else ''}"
 
     class Meta:
         verbose_name = "Комментарий"

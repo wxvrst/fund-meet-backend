@@ -79,7 +79,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
     def perform_create(self, serializer):
-        serializer.save(autor=self.request.user)
+        serializer.save(author=self.request.user)
 
     @action(detail=False, methods=['get'], url_path='by_publication/(?P<publication_id>\d+)')
     def list_by_publication(self, request, publication_id):
@@ -110,7 +110,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        serializer.save(autor=request.user, publication=publication)
+        serializer.save(author=request.user, publication=publication)
 
         return Response({
             'message': f'Комментарий создан для публикации "{publication.header}"',
@@ -155,7 +155,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             serializer.save(
-                autor=request.user,
+                author=request.user,
                 parent_comment=parent_comment,
                 publications=parent_comment.publications.first()
             )
@@ -179,7 +179,7 @@ class CommentViewSet(viewsets.ModelViewSet):
             )
 
         user = request.user
-        if user != comment.autor and user != publication.author and not user.is_staff:
+        if user != comment.author and user != publication.author and not user.is_staff:
             return Response(
                 {'error': 'У вас нет прав на удаление этого комментария'},
                 status=status.HTTP_403_FORBIDDEN
