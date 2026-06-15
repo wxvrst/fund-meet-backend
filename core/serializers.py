@@ -1,23 +1,26 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 
 from core.models import UserModel
 
+class UserRefSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    username = serializers.CharField()
+
 class UserSerializer(serializers.ModelSerializer):
-    following = serializers.SerializerMethodField()
-    followers = serializers.SerializerMethodField()
-
-    class Meta:
-        model = UserModel
-        fields = ('id', 'username', 'email', 'avatar', 'following', "followers")
-
+    @extend_schema_field(UserRefSerializer(many=True))
     def get_following(self, obj):
         return [{'id': u.id, 'username': u.username} for u in obj.following.all()]
 
+    @extend_schema_field(UserRefSerializer(many=True))
     def get_followers(self, obj):
         return [{'id': u.id, 'username': u.username} for u in obj.followers.all()]
 
+    class Meta:
+        model = UserModel
+        fields = ('id', 'username', 'email', 'avatar', 'following', 'followers')
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
