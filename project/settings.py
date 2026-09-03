@@ -111,7 +111,7 @@ if os.environ.get('DATABASE_URL'):
         'default': dj_database_url.config(
             conn_max_age=600,
             ssl_require=True,
-            OPTIONS={
+            options={
                 'connect_timeout': 10,
                 'hostaddr':'2a05:d014:1577:8801:d832:412d:f798:9912'
             }
