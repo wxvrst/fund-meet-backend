@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-pb#%$n)%&mhj4b$ev5%!)v3=^$j(f1352ucqvbm%+(-fa2s(e3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['fund-meet-backend-wheat.vercel.app']
 
 
 # Application definition
