@@ -106,12 +106,28 @@ CSRF_TRUSTED_ORIGINS = [
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600
-    )
-}
+db_url = (os.getenv('DATABASE_URL') or
+          os.getenv('POSTGRES_URL') or
+          os.getenv('STORAGE_DATABASE_URL'))
+
+if db_url:
+    # Если есть полная строка – используем её
+    DATABASES = {
+        'default': dj_database_url.config(default=db_url, conn_max_age=600)
+    }
+else:
+    # Иначе собираем из отдельных компонентов (стандартные имена от Vercel/Neon)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('PGDATABASE') or os.getenv('STORAGE_DATABASE_NAME'),
+            'USER': os.getenv('PGUSER') or os.getenv('STORAGE_DATABASE_USER'),
+            'PASSWORD': os.getenv('PGPASSWORD') or os.getenv('STORAGE_DATABASE_PASSWORD'),
+            'HOST': os.getenv('PGHOST') or os.getenv('STORAGE_DATABASE_HOST'),
+            'PORT': os.getenv('PGPORT') or os.getenv('STORAGE_DATABASE_PORT', '5432'),
+            'OPTIONS': {'sslmode': 'require'},
+        }
+    }
 
 
 # Password validation
