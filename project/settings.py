@@ -106,18 +106,19 @@ CSRF_TRUSTED_ORIGINS = [
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
-        conn_max_age=600
-    )
-}
+db_url = os.getenv('DATABASE_URL')
+default_db = dj_database_url.config(default=db_url, conn_max_age=600)
 
-DATABASES['default']['HOST'] = '2a05:d014:1577:8801:d832:412d:f798:9912'
+default_db['HOST'] = 'db.iqdipgnfkhqdqtpxorjt.pooler.supabase.com'
+default_db['PORT'] = '6543'
 
-DATABASES['default']['OPTIONS'] = {
+default_db['OPTIONS'] = {
     'sslmode': 'require',
     'connect_timeout': 10,
+}
+
+DATABASES = {
+    'default': default_db
 }
 
 
