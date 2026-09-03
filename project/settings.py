@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import dj_database_url
+from dotenv import load_dotenv
+load_dotenv('.env.local')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -108,24 +110,20 @@ CSRF_TRUSTED_ORIGINS = [
 
 db_url = (os.getenv('DATABASE_URL') or
           os.getenv('POSTGRES_URL') or
-          os.getenv('STORAGE_DATABASE_URL'))
+          os.getenv('STORAGE_DATABASE_URL') or
+          os.getenv('DATABASE_PUBLIC_URL'))  # иногда Neon использует это имя
 
 if db_url:
-    # Если есть полная строка – используем её
+    # Если переменная найдена – используем PostgreSQL
     DATABASES = {
         'default': dj_database_url.config(default=db_url, conn_max_age=600)
     }
 else:
-    # Иначе собираем из отдельных компонентов (стандартные имена от Vercel/Neon)
+    # Если нет – используем SQLite для локальной разработки
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('PGDATABASE') or os.getenv('STORAGE_DATABASE_NAME'),
-            'USER': os.getenv('PGUSER') or os.getenv('STORAGE_DATABASE_USER'),
-            'PASSWORD': os.getenv('PGPASSWORD') or os.getenv('STORAGE_DATABASE_PASSWORD'),
-            'HOST': os.getenv('PGHOST') or os.getenv('STORAGE_DATABASE_HOST'),
-            'PORT': os.getenv('PGPORT') or os.getenv('STORAGE_DATABASE_PORT', '5432'),
-            'OPTIONS': {'sslmode': 'require'},
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
