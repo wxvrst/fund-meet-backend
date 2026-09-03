@@ -106,19 +106,20 @@ CSRF_TRUSTED_ORIGINS = [
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-db_url = os.getenv('DATABASE_URL')
-default_db = dj_database_url.config(default=db_url, conn_max_age=600)
-
-default_db['HOST'] = 'db.iqdipgnfkhqdqtpxorjt.pooler.supabase.com'
-default_db['PORT'] = '6543'
-
-default_db['OPTIONS'] = {
-    'sslmode': 'require',
-    'connect_timeout': 10,
-}
-
 DATABASES = {
-    'default': default_db
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': os.getenv('DATABASE_PASSWORD'),   # создадим эту переменную
+        'HOST': '2a05:d014:1577:8801:d832:412d:f798:9912',  # IPv6 без скобок
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+            'connect_timeout': 30,
+            'hostaddr': '2a05:d014:1577:8801:d832:412d:f798:9912',  # дублируем
+        }
+    }
 }
 
 
